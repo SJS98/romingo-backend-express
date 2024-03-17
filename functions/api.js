@@ -322,7 +322,7 @@ router.get('/state', (req, res) => {
 
 router.get('/state/:name', (req, res) => {
     for (const [stateName, stateObj] of Object.entries(citiesData)) {
-        if (stateName == req.params.name) {
+        if (stateName.toLowerCase() == req.params.name.toLowerCase()) {
             let cities = [];
             Object.keys(stateObj).map(city => cities.push({ name: city, coords: stateObj[city] }));
             res.json(cities);
