@@ -10,7 +10,7 @@
     <script>
 
         async function fetchData() {
-            await fetch("http://localhost:9000/.netlify/").then(resp => console.log(resp));
+            await fetch("http://localhost:9000/.netlify/functions/api/vehicles").then(resp => console.log(resp));
         }
         fetchData();
     </script>
