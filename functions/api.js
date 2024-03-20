@@ -377,6 +377,31 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     return distance;
 }
 
+router.get('/journey/:from/:to/:vehicleType', (req, res) => {
+    const fromCityName = req.params.from.toLowerCase();
+    const toCityName = req.params.to.toLowerCase();
+    const fromCityObj = getCity(fromCityName);
+    const toCityObj = getCity(toCityName);
+    console.log(fromCityName, toCityName);
+    // Check if the cities exist in the data
+    if (!fromCityObj || !toCityObj) {
+        return res.status(404).json({ error: 'City not found' });
+    }
+
+    // Get latitude and longitude of fromCity and toCity
+    const { latitude: lat1, longitude: lon1 } = fromCityObj;
+    const { latitude: lat2, longitude: lon2 } = toCityObj;
+
+    // Calculate distance using the Haversine formula
+    const distance = calculateDistance(lat1, lon1, lat2, lon2);  // Distance in kilometers
+    const vehicleType = req.params.vehicleType; // Vehicle type: BUS, TRAIN, or PLANE
+    const fare = calculateFare(distance, vehicleType, null);
+    const { gradeA, gradeB, gradeC } = fare;
+
+    res.json({ from: fromCityName, to: toCityName, distance: distance.toFixed(2) + ' km', faresByGrade: { gradeA: gradeA.toFixed(2), gradeB: gradeB.toFixed(2), gradeC: gradeC.toFixed(2) } });
+});
+
+
 // Endpoint to calculate distance between two cities
 router.get('/journey/:from/:to/:vehicleType/:comfortLevel', (req, res) => {
     const fromCityName = req.params.from.toLowerCase();
@@ -397,11 +422,13 @@ router.get('/journey/:from/:to/:vehicleType/:comfortLevel', (req, res) => {
     const distance = calculateDistance(lat1, lon1, lat2, lon2);  // Distance in kilometers
     const vehicleType = req.params.vehicleType; // Vehicle type: BUS, TRAIN, or PLANE
     const comfortLevel = req.params.comfortLevel; // Comfort level: GRADE A, GRADE B, or GRADE C
-    const fare = calculateFare(distance, vehicleType, comfortLevel);
-    res.json({ from: fromCityName, to: toCityName, distance: distance.toFixed(2) + ' km', fare });
+    const {totalFare} = calculateFare(distance, vehicleType, comfortLevel);
+    res.json({ from: fromCityName, to: toCityName, distance: distance.toFixed(2) + ' km', totalFare: totalFare.toFixed(2) });
 });
 
 function calculateFare(distance, vehicleType, comfortLevel) {
+
+
     // Define fare per kilometer for each vehicle type and comfort level
     const farePerKm = {
         "BUS": {
@@ -421,11 +448,21 @@ function calculateFare(distance, vehicleType, comfortLevel) {
         }
     };
 
-    // Calculate total fare based on distance and fare per kilometer
-    let totalFare = distance * farePerKm[vehicleType.toUpperCase()][comfortLevel.toUpperCase()];
 
-    // Return the total fare
-    return Math.floor(totalFare);
+    if (comfortLevel) {
+        // Calculate total fare based on distance and fare per kilometer
+        let totalFare = distance * farePerKm[vehicleType.toUpperCase()][comfortLevel.toUpperCase()];
+        // Return the total fare
+        return {totalFare};
+    }
+    else {
+        // Calculate total fare based on distance and fare per kilometer
+        let totalFareA = distance * farePerKm[vehicleType.toUpperCase()]['Grade A'.toUpperCase()];
+        let totalFareB = distance * farePerKm[vehicleType.toUpperCase()]['Grade B'.toUpperCase()];
+        let totalFareC = distance * farePerKm[vehicleType.toUpperCase()]['Grade C'.toUpperCase()];
+        // Return the total fare
+        return { gradeA: totalFareA, gradeB: totalFareB, gradeC: totalFareC};
+    }
 }
 
 
