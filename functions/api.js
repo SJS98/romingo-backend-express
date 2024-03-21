@@ -398,7 +398,7 @@ router.get('/journey/:from/:to/:vehicleType', (req, res) => {
     const fare = calculateFare(distance, vehicleType, null);
     const { gradeA, gradeB, gradeC } = fare;
     const timing = calculateTime(distance, vehicleType);
-    res.json({ from: fromCityName, to: toCityName, distance: distance.toFixed(2) + ' km', faresByGrade: { gradeA: gradeA.toFixed(2), gradeB: gradeB.toFixed(2), gradeC: gradeC.toFixed(2) }, timing });
+    res.json({ from: fromCityName, to: toCityName, distance: distance.toFixed(2) + ' km', faresByGrade: { gradeA: gradeA.toFixed(2), gradeB: gradeB.toFixed(2), gradeC: gradeC.toFixed(2) }, duration: timing });
 });
 
 
@@ -424,7 +424,7 @@ router.get('/journey/:from/:to/:vehicleType/:comfortLevel', (req, res) => {
     const comfortLevel = req.params.comfortLevel; // Comfort level: GRADE A, GRADE B, or GRADE C
     const { totalFare } = calculateFare(distance, vehicleType, comfortLevel);
     const timing = calculateTime(distance, vehicleType);
-    res.json({ from: fromCityName, to: toCityName, distance: distance.toFixed(2) + ' km', totalFare: totalFare.toFixed(2), timing });
+    res.json({ from: fromCityName, to: toCityName, distance: distance.toFixed(2) + ' km', totalFare: totalFare.toFixed(2), duration:timing });
 });
 
 function calculateTime(distance, vehicleType) {
