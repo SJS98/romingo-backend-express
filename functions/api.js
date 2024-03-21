@@ -397,8 +397,8 @@ router.get('/journey/:from/:to/:vehicleType', (req, res) => {
     const vehicleType = req.params.vehicleType; // Vehicle type: BUS, TRAIN, or PLANE
     const fare = calculateFare(distance, vehicleType, null);
     const { gradeA, gradeB, gradeC } = fare;
-
-    res.json({ from: fromCityName, to: toCityName, distance: distance.toFixed(2) + ' km', faresByGrade: { gradeA: gradeA.toFixed(2), gradeB: gradeB.toFixed(2), gradeC: gradeC.toFixed(2) } });
+    const timing = calculateTime(distance, vehicleType);
+    res.json({ from: fromCityName, to: toCityName, distance: distance.toFixed(2) + ' km', faresByGrade: { gradeA: gradeA.toFixed(2), gradeB: gradeB.toFixed(2), gradeC: gradeC.toFixed(2) }, timing });
 });
 
 
@@ -422,12 +422,29 @@ router.get('/journey/:from/:to/:vehicleType/:comfortLevel', (req, res) => {
     const distance = calculateDistance(lat1, lon1, lat2, lon2);  // Distance in kilometers
     const vehicleType = req.params.vehicleType; // Vehicle type: BUS, TRAIN, or PLANE
     const comfortLevel = req.params.comfortLevel; // Comfort level: GRADE A, GRADE B, or GRADE C
-    const {totalFare} = calculateFare(distance, vehicleType, comfortLevel);
-    res.json({ from: fromCityName, to: toCityName, distance: distance.toFixed(2) + ' km', totalFare: totalFare.toFixed(2) });
+    const { totalFare } = calculateFare(distance, vehicleType, comfortLevel);
+    const timing = calculateTime(distance, vehicleType);
+    res.json({ from: fromCityName, to: toCityName, distance: distance.toFixed(2) + ' km', totalFare: totalFare.toFixed(2), timing });
 });
 
-function calculateFare(distance, vehicleType, comfortLevel) {
+function calculateTime(distance, vehicleType) {
+    let avgSpeed = 0;
+    const vehicleTypeLower = vehicleType.toLowerCase();
+    if (vehicleTypeLower == 'BUS'.toLowerCase()) {
+        avgSpeed = 100; // 100 KM/H
+    } else if (vehicleTypeLower == 'TRAIN'.toLowerCase()) {
+        avgSpeed = 180; // 100 KM/H
+    } else if (vehicleTypeLower == 'PLANE'.toLowerCase()) {
+        avgSpeed = 580; // 100 KM/H
+    }
+    const timing = (distance / avgSpeed).toFixed(1);
+    const hour = Math.floor(timing);
+    const minutes = Math.floor(timing % 10);
+    const timingFormat = hour + " hr " + (minutes > 0 ? minutes * 6 + " minutes" : "");
+    return timingFormat;
+}
 
+function calculateFare(distance, vehicleType, comfortLevel) {
 
     // Define fare per kilometer for each vehicle type and comfort level
     const farePerKm = {
@@ -448,12 +465,11 @@ function calculateFare(distance, vehicleType, comfortLevel) {
         }
     };
 
-
     if (comfortLevel) {
         // Calculate total fare based on distance and fare per kilometer
         let totalFare = distance * farePerKm[vehicleType.toUpperCase()][comfortLevel.toUpperCase()];
         // Return the total fare
-        return {totalFare};
+        return { totalFare };
     }
     else {
         // Calculate total fare based on distance and fare per kilometer
@@ -461,7 +477,7 @@ function calculateFare(distance, vehicleType, comfortLevel) {
         let totalFareB = distance * farePerKm[vehicleType.toUpperCase()]['Grade B'.toUpperCase()];
         let totalFareC = distance * farePerKm[vehicleType.toUpperCase()]['Grade C'.toUpperCase()];
         // Return the total fare
-        return { gradeA: totalFareA, gradeB: totalFareB, gradeC: totalFareC};
+        return { gradeA: totalFareA, gradeB: totalFareB, gradeC: totalFareC };
     }
 }
 
