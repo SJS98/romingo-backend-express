@@ -439,7 +439,7 @@ function calculateTime(distance, vehicleType) {
     }
     const timing = (distance / avgSpeed).toFixed(1);
     const hour = Math.floor(timing);
-    const minutes = Math.floor(timing % 10);
+    const minutes = Math.round(timing % 10);
     const timingFormat = hour + " hr " + (minutes > 0 ? minutes * 6 + " minutes" : "");
     return timingFormat;
 }
